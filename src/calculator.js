@@ -45,16 +45,63 @@ function div(a, b) {
   return a / b;
 }
 
+// Additional functions requested: modulo, power, squareRoot
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error('Division by zero');
+  }
+  return a % b;
+}
+
+function power(base, exponent) {
+  return Math.pow(base, exponent);
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error('Square root of negative number');
+  }
+  return Math.sqrt(n);
+}
+
 // CLI entrypoint when run directly
 if (require.main === module) {
-  const [, , op, aRaw, bRaw] = process.argv;
+  const args = process.argv.slice(2);
+  const op = args[0];
 
   function usage() {
-    console.error('Usage: node src/calculator.js <add|sub|mul|div|+|-|*|/> <number> <number>');
+    console.error('Usage: node src/calculator.js <operation> <number> [<number>]');
+    console.error('Supported operations: add(+), sub(-), mul(*), div(/), mod(%), pow(^), sqrt');
     process.exit(2);
   }
 
-  if (!op || aRaw === undefined || bRaw === undefined) usage();
+  if (!op) usage();
+
+  // Handle unary operation sqrt which requires one operand
+  if (op === 'sqrt') {
+    const aRaw = args[1];
+    if (aRaw === undefined) usage();
+    let a;
+    try {
+      a = toNumber(aRaw);
+    } catch (err) {
+      console.error(err.message);
+      process.exit(2);
+    }
+
+    try {
+      const result = squareRoot(a);
+      console.log(result);
+    } catch (err) {
+      console.error(err.message);
+      process.exit(3);
+    }
+    process.exit(0);
+  }
+
+  const aRaw = args[1];
+  const bRaw = args[2];
+  if (aRaw === undefined || bRaw === undefined) usage();
 
   let a, b;
   try {
@@ -84,6 +131,14 @@ if (require.main === module) {
       case '/':
         result = div(a, b);
         break;
+      case 'mod':
+      case '%':
+        result = modulo(a, b);
+        break;
+      case 'pow':
+      case '^':
+        result = power(a, b);
+        break;
       default:
         console.error(`Unknown operation: ${op}`);
         usage();
@@ -94,12 +149,7 @@ if (require.main === module) {
   }
 
   // Print result to stdout
-  // If result is an integer, print without trailing .0
-  if (Number.isInteger(result)) {
-    console.log(result);
-  } else {
-    console.log(result);
-  }
+  console.log(result);
 }
 
-module.exports = { add, sub, mul, div };
+module.exports = { add, sub, mul, div, modulo, power, squareRoot };
